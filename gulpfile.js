@@ -1,18 +1,20 @@
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var bower = require('bower');
+var browserSync = require('browser-sync').create();
 var concat = require('gulp-concat');
 var sass = require('gulp-sass');
 var minifyCss = require('gulp-minify-css');
 var rename = require('gulp-rename');
 var sh = require('shelljs');
 var uglify = require('gulp-uglify');
+var runSequence = require('run-sequence');
 var foreach = require('gulp-foreach');
-var htmlmin = require('gulp-htmlmin');
 var notify = require("gulp-notify");
+var htmlmin = require('gulp-htmlmin');
 var preen = require('preen');
-var sourcemaps = require('gulp-sourcemaps');
 var imagemin = require('gulp-imagemin');
+var sourcemaps = require('gulp-sourcemaps');
 var autoprefixer = require('gulp-autoprefixer');
 var path = require('path');
 var del = require('del');
@@ -30,7 +32,11 @@ var paths = {
     destTemplates: './www/templates/'
 };
 
-gulp.task('default', ['sass', 'index', 'scripts', 'styles', 'templates', 'images', 'lib']);
+gulp.task('default', function (callback) {
+  runSequence(['sass','index' , 'scripts', 'styles', 'templates', 'images', 'lib','browserSync', 'watch'],
+    callback
+  )
+})
 
 gulp.task('sass', function(done) {
     gulp.src('./scss/ionic.app.scss')
@@ -148,6 +154,9 @@ gulp.task('watch', function() {
         }
     });
     gulp.watch(paths.lib, ['lib']);
+    gulp.watch('www/*.html', browserSync.reload); 
+    gulp.watch('www/**/*.js', browserSync.reload); 
+    gulp.watch('www/**/*.+(png|jpg|jpeg|gif|svg)', browserSync.reload); 
 });
 
 gulp.task('install', ['git-check'], function() {
@@ -169,3 +178,12 @@ gulp.task('git-check', function(done) {
     }
     done();
 });
+
+
+gulp.task('browserSync', function() {
+  browserSync.init({
+    server: {
+      baseDir: 'www'
+    },
+  })
+})
